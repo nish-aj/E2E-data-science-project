@@ -1,0 +1,361 @@
+
+              CORRELATION - FEATURE RANKING
+```{r}
+setwd("C:/Users/Nishna/Documents/DMML_CW1/F21DL_CW1_R")
+
+#happy
+happy_pixels <- readRDS("happy_pixels_splitted.Rds")
+library(SciViews)
+happy_cor <- Correlation(happy_pixels,cutoff = 0.8)
+happy_cor_top10 <-  sort(abs(happy_cor[1,]),decreasing = TRUE)[1:11]
+rm(happy_pixels)
+rm(happy_cor)
+
+#surprise
+surprise_pixels <- readRDS("surprise_pixels_splitted.Rds")
+library(SciViews)
+surprise_cor <- Correlation(surprise_pixels,cutoff = 0.8)
+surprise_cor_top10 <-  sort(abs(surprise_cor[1,]),decreasing = TRUE)[1:11]
+rm(surprise_pixels)
+rm(surprise_cor)
+
+#neutral
+neutral_pixels <- readRDS("neutral_pixels_splitted.Rds")
+library(SciViews)
+neutral_cor <- Correlation(neutral_pixels,cutoff = 0.8)
+neutral_cor_top10 <-  sort(abs(neutral_cor[1,]),decreasing = TRUE)[1:11]
+rm(neutral_pixels)
+rm(neutral_cor)
+
+#angry
+angry_pixels <- readRDS("angry_pixels_splitted.Rds")
+library(SciViews)
+angry_cor <- Correlation(angry_pixels,cutoff = 0.8)
+angry_cor_top10 <-  sort(abs(angry_cor[1,]),decreasing = TRUE)[1:11]
+rm(angry_pixels)
+rm(angry_cor)
+
+#sad
+sad_pixels <- readRDS("sad_pixels_splitted.Rds")
+library(SciViews)
+sad_cor <- Correlation(sad_pixels,cutoff = 0.8)
+sad_cor_top10 <-  sort(abs(sad_cor[1,]),decreasing = TRUE)[1:11]
+rm(sad_pixels)
+rm(sad_cor)
+
+#disgust
+disgust_pixels <- readRDS("disgust_pixels_splitted.Rds")
+library(SciViews)
+disgust_cor <- Correlation(disgust_pixels,cutoff = 0.8)
+disgust_cor_top10 <-  sort(abs(disgust_cor[1,]),decreasing = TRUE)[1:11]
+rm(disgust_pixels)
+rm(disgust_cor)
+
+#fear
+fear_pixels <- readRDS("fear_pixels_splitted.Rds")
+library(SciViews)
+fear_cor <- Correlation(fear_pixels,cutoff = 0.8)
+fear_cor_top10 <-  sort(abs(fear_cor[1,]),decreasing = TRUE)[1:11]
+rm(fear_pixels)
+rm(fear_cor)
+```
+ 
+              CREATE NEW DATASET WITH TOP 2 FEATURES OF ALL EMOTIONS
+```{r}
+#Get attribute names
+features_2 <- unique(c(names(angry_cor_top10[2:3]), 
+            names(disgust_cor_top10[2:3]),
+            names(fear_cor_top10[2:3]),
+            names(happy_cor_top10[2:3]), 
+            names(sad_cor_top10[2:3]), 
+            names(surprise_cor_top10[2:3]), 
+            names(neutral_cor_top10[2:3])))
+#Feature selection
+features_2_data <- pixels_splitted[,features_2]
+
+#create dataset
+saveRDS(features_2_data, file = "Features_2_data.Rds")
+```
+              
+              CREATE NEW DATASET WITH TOP 5 FEATURES OF ALL EMOTIONS
+```{r}
+#Get attribute names
+features_5 <- unique(c(names(angry_cor_top10[2:6]), 
+            names(disgust_cor_top10[2:6]),
+            names(fear_cor_top10[2:6]),
+            names(happy_cor_top10[2:6]), 
+            names(sad_cor_top10[2:6]), 
+            names(surprise_cor_top10[2:6]), 
+            names(neutral_cor_top10[2:6])))
+#Feature selection
+features_5_data <- pixels_splitted[,features_5]
+
+#create dataset
+saveRDS(features_5_data, file = "Features_5_data.Rds")
+```
+
+          CREATE NEW DATASET WITH TOP 10 FEATURES OF ALL EMOTIONS
+```{r}
+#Get attribute names
+features_10 <- unique(c(names(angry_cor_top10[2:11]), 
+            names(disgust_cor_top10[2:11]),
+            names(fear_cor_top10[2:11]),
+            names(happy_cor_top10[2:11]), 
+            names(sad_cor_top10[2:11]), 
+            names(surprise_cor_top10[2:11]), 
+            names(neutral_cor_top10[2:11])))
+#Feature selection
+features_10_data <- pixels_splitted[,features_10]
+
+#create dataset
+saveRDS(features_10_data, file = "Features_10_data.Rds")
+```            
+
+                      CLASSIFIER FOR FEATURES_2 DATASET
+
+  
+LOAD THE DATASETs
+```{r}
+setwd("C:/Users/Nishna/Documents/DMML_CW1/F21DL_CW1_R")
+features_2_data <- readRDS("Features_2_data.Rds")
+features_5_data <- readRDS("Features_5_data.Rds")
+features_10_data <- readRDS("Features_10_data.Rds")
+```
+
+PARTITION THE DATASETs FOR TRAIN & TEST
+```{r}
+library(caret)
+set.seed(3)
+
+#feature_2
+test_index <- createDataPartition(features_2_data$emotion,times = 1, p = 0.3, list = FALSE)
+features_2_test <- features_2_data[test_index, ]
+features_2_train <- features_2_data[-test_index, ]
+
+#feature_5
+test_index <- createDataPartition(features_5_data$emotion,times = 1, p = 0.3, list = FALSE)
+features_5_test <- features_5_data[test_index, ]
+features_5_train <- features_5_data[-test_index, ]
+
+#feature_10
+test_index <- createDataPartition(features_10_data$emotion,times = 1, p = 0.3, list = FALSE)
+features_10_test <- features_10_data[test_index, ]
+features_10_train <- features_10_data[-test_index, ]
+```
+
+FREEZE TEST & TRAIN DATASET & SAVE THEM IN SEPERATE FILES 
+```{r}
+saveRDS(features_2_test, "features_2_test.Rds")
+saveRDS(features_2_train, "features_2_train.Rds")
+
+saveRDS(features_5_test, "features_5_test.Rds")
+saveRDS(features_5_train, "features_5_train.Rds")
+
+saveRDS(features_10_test, "features_10_test.Rds")
+saveRDS(features_10_train, "features_10_train.Rds")
+```
+
+```{r}
+features_2_train <- readRDS(file = "features_2_train.Rds")
+features_5_train <- readRDS(file = "features_5_train.Rds")
+features_10_train <- readRDS(file = "features_10_train.Rds")
+
+features_2_test <- readRDS(file = "features_2_test.Rds")
+features_5_test <- readRDS(file = "features_5_test.Rds")
+features_10_test <- readRDS(file = "features_10_test.Rds")
+```
+
+
+```{r}
+#Model with top 2 features
+y <- factor(features_2_train$emotion)
+control <- trainControl(method = "cv", number = 10, p = .9,
+                        verboseIter = TRUE)
+train_knn_2 <- train(features_2_train, y,
+                     method = "knn",
+                     tuneGrid =  data.frame(k = seq(3,11,2)),
+                     trControl = control)
+y_hat_2 <- predict(train_knn_2, features_2_test, type = "raw", k = 3)      
+test_error_2 <- confusionMatrix(data = y_hat_2,
+                                reference = factor(features_2_test$emotion))$
+                                overall["Accuracy"]
+
+#Model with top 5 features
+y <- factor(features_5_train$emotion)
+control <- trainControl(method = "cv", number = 10, p = .9,
+                        verboseIter = TRUE)
+train_knn_5 <- train(features_5_train, y,
+                     method = "knn",
+                     tuneGrid =  data.frame(k = seq(3,11,2)),
+                     trControl = control)
+y_hat_5 <- predict(train_knn_5, features_5_test, type = "raw", k = 3)      
+test_error_5 <- confusionMatrix(data = y_hat_5,
+        reference = factor(features_5_test$emotion))$overall["Accuracy"]
+
+#Model with top 10 features
+y <- factor(features_10_train$emotion)
+control <- trainControl(method = "cv", number = 10, p = .9,
+                        verboseIter = TRUE)
+train_knn_10 <- train(features_10_train, y,
+                     method = "knn",
+                     tuneGrid =  data.frame(k = seq(3,11,2)),
+                     trControl = control)
+y_hat_10 <- predict(train_knn_10, features_10_test, type = "raw", k = 3)      
+test_error_10 <- confusionMatrix(data = y_hat_10,
+        reference = factor(features_10_test$emotion))$overall["Accuracy"]
+
+save(train_knn_2, train_knn_5, train_knn_10,
+     y_hat_2, y_hat_5, y_hat_10,
+     test_error_2, test_error_5, test_error_10, file = "knn_cor.rda")
+```
+
+COMPARING TRAIN_ERROR & TEST_ERROR FOR FEATURE_2 FOR k = 3
+```{r}
+y <- factor(features_2_train$emotion)
+control <- trainControl(method = "cv", number = 10, p = .9,
+                        verboseIter = TRUE)
+train_knn_2 <- train(features_2_train, y,
+                     method = "knn",
+                     tuneGrid =  data.frame(k = 3),
+                     trControl = control)
+train_error <- train_knn_2$results$Accuracy[which(train_knn_2$results$k == 3)]
+y_hat <- predict(train_knn_2, features_2_test, type = "raw", k = 3)      
+test_error <- confusionMatrix(data = y_hat,
+        reference = factor(features_2_test$emotion))$overall["Accuracy"]
+list(train = train_error, test = test_error)
+```
+
+ COMPARING TEST ERROR RATE FOR FEATURE_2 ,FEATURE_3 & FEATURE_10 WITH various values of k
+```{r}
+#initial setting
+ setwd("C:/Users/Nishna/Documents/DMML_CW1/F21DL_CW1_R")
+ features_2_train <- readRDS("features_2_train.Rds")
+ features_2_test <- readRDS("features_2_test.Rds")
+ features_5_train <- readRDS("features_5_train.Rds")
+ features_5_test <- readRDS("features_5_test.Rds")
+ features_10_train <- readRDS("features_10_train.Rds")
+ features_10_test <- readRDS("features_10_test.Rds")
+ library(caret)
+ 
+```
+
+
+```{r}
+y <- factor(features_2_train$emotion)
+control <- trainControl(method = "cv", number = 10, p = .9,
+                        verboseIter = TRUE)
+train_knn_2 <- train(features_2_train, y,
+                     method = "knn",
+                     tuneGrid =  data.frame(k = seq(3,11,2)),
+                     trControl = control)
+```
+```{r}
+#plot the results
+k <- c(train_knn_2$results$k,
+       train_knn_5$results$k,
+       train_knn_10$results$k)
+accuracy <- c(train_knn_2$results$Accuracy,
+              train_knn_5$results$Accuracy,
+              train_knn_10$results$Accuracy)
+No_of_Features <- c(rep("Top_2_features",length(train_knn_2$results$k)),
+                    rep("Top_5_features",length(train_knn_5$results$k)),
+                    rep("Top_10_features",length(train_knn_10$results$k)))
+plot_knn <- data.frame(k, accuracy, No_of_Features)
+library(dplyr)
+plot_knn %>% ggplot(aes(k, accuracy, col = No_of_Features)) +
+  geom_line() +
+  geom_point() +
+  xlab("k") +
+  ylab("Cross Validation Accuracy") 
+  
+```
+
+     Filter Feature ranking comparison : PCA vs Absolute CORRELATION 
+
+```{r}
+No_of_Features_pca <- c(14,34,68)
+No_of_Features_cor <- c(14,34,68)
+No_of_Features <- c(No_of_Features_pca, 
+                    No_of_Features_cor)
+accuracy_pca <- c(fit_K_14$results$Accuracy,
+                  fit_K_34$results$Accuracy,
+                  fit_K_68$results$Accuracy)
+accuracy_cor <- c(test_error_2,
+                  test_error_5,
+                  test_error_10)
+accuracy <- c(accuracy_pca, 
+              accuracy_cor)
+filter_method <- c(rep("PCA", length(No_of_Features_pca)),
+                   rep("Absolute Correlation", length(No_of_Features_cor)))
+plot_pca_cor <- data.frame(No_of_Features, 
+                           accuracy, 
+                           filter_method )
+library(dplyr)
+plot_pca_cor %>% ggplot(aes(No_of_Features, accuracy, col = filter_method)) +
+  geom_line() +
+  geom_point(size = 3) +
+  xlab("No of features") +
+  ylab("Cross Validation Accuracy") 
+```
+
+
+```{r}
+#Confusion matrix for cor 1:68
+y_hat_10 <- predict(train_knn_10, features_10_test, type = "raw", k = 3)      
+confusionMatrix(data = y_hat_10,
+        reference = factor(features_10_test$emotion))
+```
+
+```{r}
+#remove unwanted variables
+rm(accuracy)
+rm(accuracy_cor)
+rm(accuracy_pca)
+rm(col_index)
+```
+
+
+```{r}
+#Model with top 2 features
+y <- factor(features_2_train$emotion)
+control <- trainControl(method = "cv", number = 10, p = .9,
+                        verboseIter = TRUE)
+train_knn_2 <- train(features_2_train, y,
+                     method = "knn",
+                     tuneGrid =  data.frame(k = 3:13),
+                     trControl = control)
+y_hat_2 <- predict(train_knn_2, features_2_test, type = "raw", k = 3)      
+test_error_2 <- confusionMatrix(data = y_hat_2,
+                                reference = factor(features_2_test$emotion))$
+                                overall["Accuracy"]
+
+#Model with top 5 features
+y <- factor(features_5_train$emotion)
+control <- trainControl(method = "cv", number = 10, p = .9,
+                        verboseIter = TRUE)
+train_knn_5 <- train(features_5_train, y,
+                     method = "knn",
+                     tuneGrid =  data.frame(k = seq(3,33,2)),
+                     trControl = control)
+y_hat_5 <- predict(train_knn_5, features_5_test, type = "raw", k = 3)      
+test_error_5 <- confusionMatrix(data = y_hat_5,
+        reference = factor(features_5_test$emotion))$overall["Accuracy"]
+
+#Model with top 10 features
+y <- factor(features_10_train$emotion)
+control <- trainControl(method = "cv", number = 10, p = .9,
+                        verboseIter = TRUE)
+train_knn_10 <- train(features_10_train, y,
+                     method = "knn",
+                     tuneGrid =  data.frame(k = seq(3,33,2)),
+                     trControl = control)
+y_hat_10 <- predict(train_knn_10, features_10_test, type = "raw", k = 3)      
+test_error_10 <- confusionMatrix(data = y_hat_10,
+        reference = factor(features_10_test$emotion))$overall["Accuracy"]
+
+save(train_knn_2, train_knn_5, train_knn_10,
+     y_hat_2, y_hat_5, y_hat_10,
+     test_error_2, test_error_5, test_error_10, file = "knn_cor.rda")
+```
+
+              

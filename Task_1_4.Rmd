@@ -1,0 +1,422 @@
+
+      LOAD ALL CSV FILES CONVERT TO RDS
+
+```{r}
+setwd("C:/Users/Nishna/Documents/DMML_CW1/DMML_CW1_R/CW1/TASK5_6")
+#Main dataset
+dat <- dat <- read.csv("fer2018.csv", stringsAsFactors = FALSE)
+saveRDS(dat,"fer2018.Rds")
+rm(dat)
+
+#happy
+dat <- dat <- read.csv("fer2018happy.csv", stringsAsFactors = FALSE)
+saveRDS(dat,"fer2018happy.Rds")
+rm(dat)
+
+#suprise
+dat <- dat <- read.csv("fer2018surprise.csv", stringsAsFactors = FALSE)
+saveRDS(dat,"fer2018surprise.Rds")
+rm(dat)
+
+#neutral
+dat <- dat <- read.csv("fer2018neutral.csv", stringsAsFactors = FALSE)
+saveRDS(dat,"fer2018neutral.Rds")
+rm(dat)
+
+#angry
+dat <- dat <- read.csv("fer2018angry.csv", stringsAsFactors = FALSE)
+saveRDS(dat,"fer2018angry.Rds")
+rm(dat)
+
+#sad
+dat <- dat <- read.csv("fer2018sad.csv", stringsAsFactors = FALSE)
+saveRDS(dat,"fer2018sad.Rds")
+rm(dat)
+
+#disgust
+dat <- dat <- read.csv("fer2018disgust.csv", stringsAsFactors = FALSE)
+saveRDS(dat,"fer2018disgust.Rds")
+rm(dat)
+
+#fear
+dat <- dat <- read.csv("fer2018fear.csv", stringsAsFactors = FALSE)
+saveRDS(dat,"fer2018fear.Rds")
+rm(dat)
+
+```
+
+      SPLIT THE PIXEL COLUMNS OF ALL FILES
+
+```{r}
+setwd("C:/Users/Nishna/Documents/DMML_CW1/DMML_CW1_R/CW1/TASK5_6")
+#main dataset
+dat <- readRDS(file = "fer2018.Rds")
+pixels_splitted <- cSplit(dat,"pixels",sep = " ")
+saveRDS(pixels_splitted, "pixels_splitted.Rds")
+rm(dat)
+
+
+#happy
+dat <- readRDS(file = "fer2018happy.Rds")
+happy_pixels_splitted <- cSplit(dat,"pixels",sep = " ")
+dim(happy_pixels_splitted)
+saveRDS(happy_pixels_splitted, "happy_pixels_splitted.Rds")
+rm(dat)
+
+#surprise
+dat <- readRDS(file = "fer2018surprise.Rds")
+surprise_pixels_splitted <- cSplit(dat,"pixels",sep = " ")
+dim(surprise_pixels_splitted)
+saveRDS(surprise_pixels_splitted, "surprise_pixels_splitted.Rds")
+rm(dat)
+
+#neutral
+dat <- readRDS(file = "fer2018neutral.Rds")
+neutral_pixels_splitted <- cSplit(dat,"pixels",sep = " ")
+dim(neutral_pixels_splitted)
+saveRDS(neutral_pixels_splitted, "neutral_pixels_splitted.Rds")
+rm(dat)
+
+#angry
+dat <- readRDS(file = "fer2018angry.Rds")
+angry_pixels_splitted <- cSplit(dat,"pixels",sep = " ")
+dim(angry_pixels_splitted)
+saveRDS(angry_pixels_splitted, "angry_pixels_splitted.Rds")
+rm(dat)
+
+#sad
+dat <- readRDS(file = "fer2018sad.Rds")
+sad_pixels_splitted <- cSplit(dat,"pixels",sep = " ")
+dim(sad_pixels_splitted)
+saveRDS(sad_pixels_splitted, "sad_pixels_splitted.Rds")
+rm(dat)
+
+#disgust
+dat <- readRDS(file = "fer2018disgust.Rds")
+disgust_pixels_splitted <- cSplit(dat,"pixels",sep = " ")
+dim(disgust_pixels_splitted)
+saveRDS(disgust_pixels_splitted, "disgust_pixels_splitted.Rds")
+rm(dat)
+
+#fear
+dat <- readRDS(file = "fer2018fear.Rds")
+fear_pixels_splitted <- cSplit(dat,"pixels",sep = " ")
+dim(fear_pixels_splitted)
+saveRDS(fear_pixels_splitted, "fear_pixels_splitted.Rds")
+rm(dat)
+```
+
+
+      LOAD THE MAIN DATASET  WITH PIXEL COLUMN SPLITTED
+```{r}
+setwd("C:/Users/Nishna/Documents/DMML_CW1/DMML_CW1_R/CW1")
+pixels_splitted <- readRDS("pixels_splitted.Rds")
+```
+        
+      PARTITION THE DATASET FOR TRAIN & TEST
+```{r}
+library(caret)
+set.seed(2)
+test_index <- createDataPartition(pixels_splitted$emotion,times = 1, p = 0.25, list = FALSE)
+pixel_test <- pixels_splitted[test_index, ]
+pixel_train <- pixels_splitted[-test_index, ]
+```
+        
+      FREEZE TEST & TRAIN DATASET & SAVE THEM IN SEPERATE FILES 
+```{r}
+saveRDS(pixel_test, "pixel_test.Rds")
+saveRDS(pixel_train, "pixel_train.Rds")
+
+#Saving the predictor variables in matrix format in another Rds file
+pixel_train_matrix <- as.matrix(pixel_train[,-1])
+saveRDS(pixel_train_matrix, "pixel_train_matrix.Rds")
+```
+    
+            LOADING ALL THE REQUIRED LIBRARIES
+```{r}
+library(caret)
+library(dplyr)
+library(matrixStats)
+library(splitstackshape)
+```
+
+
+         LOADING THE TRAIN DATASET 
+```{r}
+setwd("C:/Users/Nishna/Documents/DMML_CW1/F21DL_CW1_R")
+pixel_train <- readRDS("pixel_train.Rds")
+pixel_train_matrix <- readRDS("pixel_train_matrix.Rds")
+```
+
+        VISUALIZE SOME IMAGES IN THE DATASET
+```{r}
+set.seed(123)
+index <- sample(nrow(pixel_train_matrix), 25)
+x <- pixel_train_matrix[index,]
+
+
+library(EBImage)
+grid <- matrix(x[1,], 48, 48,byrow = TRUE)
+image(1:48, 1:48, grid) 
+
+x_pixels_rotated <- apply(x,MARGIN = 1,FUN = function(x_row){
+  grid <- matrix(x_row, 48, 48)
+  #image(1:48,1:48,grid)
+  img_rotate <- rotate(grid,90,bg.col = "white")
+  as.vector(img_rotate)
+  
+  } )
+x_pixels_rotated_90 <- rotate(x_pixels_rotated,90)
+
+i=1
+while(i < nrow(x_pixels_rotated_90))
+{
+  grid <- matrix(x_pixels_rotated_90[i,], 48, 48,byrow = TRUE)
+  image(1:48, 1:48, grid) 
+  i = i + 1
+}
+
+
+
+```
+
+
+
+        VISUALIZE THE DISTRIBUTION & FILTER FEATURES BASED ON SUMMARY 
+```{r}
+library(matrixStats)
+sds <- colSds(pixel_train_matrix)
+
+grid <- matrix(sds, 48, 48,byrow = TRUE)
+image(1:48, 1:48, grid,col= topo.colors(12)) 
+
+qplot(sds, bins = "30", color = I("black"))
+```
+        
+
+```{r}
+rm_pixels <- pixel_train_matrix[ ,sds < 53.25]
+
+#Finding attributes to be retained
+col_index <- setdiff(1:ncol(pixel_train_matrix), 1:ncol(rm_pixels) )
+print("No of features in the new dataset :") 
+length(col_index)
+new_pixel_train_matrix <- pixel_train_matrix[,col_index]
+```    
+    
+          SCALE & PCA
+```{r}
+pixel_scaled <- scale(new_pixel_train_matrix,scale = TRUE, center = TRUE)
+pca_scaled <- prcomp(pixel_scaled)
+plot(pca_scaled$sdev)
+saveRDS(pca_scaled, file = "pca_scaled.Rds")
+library(dplyr)
+summary(pca_scaled)$importance[,c(14,34,68,100,300)] %>% knitr::kable()
+```
+        
+          TRAINING STRATIFIED SAMPLEs (1000 from each emotions )for k=3
+```{r}
+pca_scaled <- readRDS("pca_scaled.Rds")
+set.seed(123)
+Strata_index <- stratified(pixel_train, "emotion", size = 1000)
+index_strata <- sample(which(Strata_index$emotion %in% pixel_train$emotion))
+y <- pixel_train$emotion[index_strata,drop = FALSE]
+control <- trainControl(method = "cv", number = 10, p = .9,
+                        repeats = 5,verboseIter = TRUE)
+```
+```{r}
+#PC 1 : 14
+K <- 14
+train_knn_14_scaled <- train(pca_scaled$x[index_strata, 1 : K], y,
+                             method = "knn",
+                             tuneGrid =  data.frame(k = 3),
+                             trControl = control)
+#PC 1 : 24
+K <- 24
+train_knn_24_scaled <- train(pca_scaled$x[index_strata, 1 : K], y,
+                             method = "knn",
+                             tuneGrid =  data.frame(k = 3),
+                             trControl = control)
+
+#PC 1 : 28
+K <- 28
+train_knn_28_scaled <- train(pca_scaled$x[index_strata, 1 : K], y,
+                             method = "knn",
+                             tuneGrid =  data.frame(k = 3),
+                             trControl = control)
+
+#PC 1 : 34
+K <- 34
+train_knn_34_scaled <- train(pca_scaled$x[index_strata, 1 : K], y,
+                             method = "knn",
+                             tuneGrid =  data.frame(k = 3),
+                             trControl = control)
+
+#PC 1 : 68
+K <- 68
+train_knn_68_scaled <- train(pca_scaled$x[index_strata, 1 : K], y,
+                             method = "knn",
+                             tuneGrid =  data.frame(k = 3),
+                             trControl = control)
+
+#PC 1 : 100
+K <- 100
+train_knn_100_scaled <- train(pca_scaled$x[index_strata, 1 : K], y,
+                             method = "knn",
+                             tuneGrid =  data.frame(k = 3),
+                             trControl = control)
+#PC 1 : 140
+K <- 140
+train_knn_140_scaled <- train(pca_scaled$x[index_strata, 1 : K], y,
+                             method = "knn",
+                             tuneGrid =  data.frame(k = 3),
+                             trControl = control)
+
+
+
+#PC 1 : 200
+K <- 200
+train_knn_200_scaled <- train(pca_scaled$x[index_strata, 1 : K], y,
+                             method = "knn",
+                             tuneGrid =  data.frame(k = 3),
+                             trControl = control)
+
+
+#PC 1 : 300
+K <- 300
+train_knn_300_scaled <- train(pca_scaled$x[index_strata, 1 : K], y,
+                             method = "knn",
+                             tuneGrid =  data.frame(k = 3),
+                             trControl = control)
+
+save(train_knn_14_scaled,
+     train_knn_24_scaled,
+     train_knn_28_scaled,
+     train_knn_34_scaled,
+     train_knn_68_scaled,
+     train_knn_100_scaled,
+     train_knn_200_scaled,
+     train_knn_300_scaled, file = "knn_pca.rda")
+```
+
+      PLOT RMSE VS NO OF FEATURES
+```{r}
+load("knn_pca.rda")
+#Plot the results
+k <- c(14,24,28,34,68,100,140,200,300)
+rmse_list <- c(train_knn_14_scaled$results$RMSE,
+              train_knn_24_scaled$results$RMSE,
+              train_knn_28_scaled$results$RMSE,
+              train_knn_34_scaled$results$RMSE,
+              train_knn_68_scaled$results$RMSE,
+              train_knn_100_scaled$results$RMSE,
+              train_knn_140_scaled$results$RMSE,
+              train_knn_200_scaled$results$RMSE,
+              train_knn_300_scaled$results$RMSE)
+
+rmse_1000 <- data.frame(K = k, RMSE = rmse_list)
+
+rmse_1000 %>% ggplot(aes(rmse_1000$K,rmse_1000$RMSE, col = K)) +
+  geom_point(size = 2) + 
+  xlab("Principal Components 1:K") + ylab("Root Mean Squared Error") +
+  geom_line()
+
+
+#Find out the model with min RMSE
+K_win <- rmse_1000$K[which.min(rmse_1000$RMSE)]
+K_win
+```
+
+
+```{r}
+#Remove the train models for dealing with computational constraints
+rm(train_knn_100_scaled)
+rm(train_knn_14_scaled)
+rm(train_knn_140_scaled)
+rm(train_knn_200_scaled)
+rm(train_knn_24_scaled)
+rm(train_knn_28_scaled)
+rm(train_knn_300_scaled)
+rm(train_knn_34_scaled)
+rm(train_knn_68_scaled)
+rm(Strata_index)
+rm(rm_pixels)
+rm(pixel_scaled)
+rm(new_pixel_train_matrix)
+rm(control)
+rm(index_strata)
+rm(rmse_list)
+rm(rmse_1000_scaled)
+rm(k)
+rm(sds)
+rm(K)
+rm(train_knn_10)
+rm(train_knn_2)
+rm(train_knn_5)
+K_win
+```
+
+```{r}
+#fit the winner model to the whole dataset with k = 3
+y <- factor(pixel_train$emotion)
+control <- trainControl(method = "cv", number = 10, p = .9,
+                        verboseIter = TRUE)
+fit_K_win <- train(pca_scaled$x[, 1 : K_win], y,
+                   method = "knn",
+                   tuneGrid =  data.frame(k = 3),
+                   trControl = control)
+
+```
+
+      COMPUTE TEST ACCURACY
+        
+```{r}
+setwd("C:/Users/Nishna/Documents/DMML_CW1/F21DL_CW1_R")
+pixel_test <- readRDS("pixel_test.Rds")
+dim(pixel_test)
+
+#convert to matrix
+pixel_test_matrix <- as.matrix(pixel_test[,-1])
+dim(pixel_test_matrix)
+
+#filter features
+pixel_test_matrix <- pixel_test_matrix[,col_index]
+dim(pixel_test_matrix)
+
+#Transform the whole test data
+col_means <- colMeans(pixel_test_matrix)
+x_test <- sweep(pixel_test_matrix, 2, col_means) %*% pca_scaled$rotation
+x_test <- x_test[,1 :K_win]
+
+#Prediction
+y_hat <- predict(fit_K_win, x_test, type = "raw")
+
+#Results
+confusionMatrix(y_hat, factor(pixel_test$emotion))
+```
+                   
+                   FIT THE MODELS TO THE FULL TRAINING DATASET
+            
+```{r}
+#fit PC 1: 14 to full data
+fit_K_14 <- train(pca_scaled$x[, 1 : 14], y,
+                   method = "knn",
+                   tuneGrid =  data.frame(k = 3),
+                   trControl = control)
+
+#fit PC 1: 34 to full data
+fit_K_34 <- train(pca_scaled$x[, 1 : 34], y,
+                   method = "knn",
+                   tuneGrid =  data.frame(k = 3),
+                   trControl = control)
+
+#fit PC 1: 68 to full data
+fit_K_68 <- train(pca_scaled$x[, 1 : 68], y,
+                   method = "knn",
+                   tuneGrid =  data.frame(k = 3),
+                   trControl = control)
+save(fit_K_14, fit_K_34, fit_K_68, file = "pca_models_14_34_68.rda")
+
+```
+            
+            

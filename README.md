@@ -1,2 +1,2 @@
 # My first data science project
-Contains the analysis for recognizing emotions using knn
+A Machine Learning project for the image classification using K-nearest neighbour algorithm
